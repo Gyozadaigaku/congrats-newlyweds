@@ -205,7 +205,12 @@ export default function Home() {
       <div className={pageStyles.heartContainer}>
         <div className={pageStyles.topLeft}>Best wishes for a long</div>
         <div className={pageStyles.bottomRight}>and happy life together</div>
-        <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 4], fov: 50 }}>
+        <Canvas
+          className={pageStyles.heartCanvas}
+          shadows
+          dpr={[1, 2]}
+          camera={{ position: [0, 0, 4], fov: 50 }}
+        >
           <ambientLight intensity={0.7} />
           <spotLight
             intensity={0.5}
