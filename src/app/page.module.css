@@ -44,7 +44,6 @@
 .stickyMask div p {
   font-size: 2vw;
   margin: 0px;
-  margin-right: 1.5vw;
   font-weight: 700;
   color: white;
 }
@@ -103,10 +102,19 @@
     height: 50vh !important;
   }
   .stickyMask div p {
-    font-size: 2.5vw;
+    font-size: 12px;
   }
   .topLeft,
   .bottomRight {
     font-size: 7.5vw;
+  }
+  .topLeft {
+    top: 22%;
+  }
+  .bottomRight {
+    bottom: 22%;
+  }
+  .textContainer {
+    width: 90%;
   }
 }
