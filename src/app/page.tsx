@@ -1,113 +1,246 @@
-import Image from 'next/image'
+"use client";
+import { useRef, useEffect, useCallback, MutableRefObject } from "react";
+import { ScrollTrigger } from "gsap/ScrollTrigger";
+import pageStyles from "./page.module.css";
+import gsap from "gsap";
+
+import { Suspense } from "react";
+import { Canvas, useLoader } from "@react-three/fiber";
+import { Environment, OrbitControls } from "@react-three/drei";
+import { GLTFLoader } from "three/examples/jsm/loaders/GLTFLoader";
+import ReactCanvasConfetti from "react-canvas-confetti";
+
+const letter = `れなぴょんへ
+
+一緒に働けた期間は１年ちょっとくらいかな？
+いつも一生懸命で仕事の飲み込みも早かったよね。
+
+あの時は照れ臭くて言えなかったけど、
+シフトが一緒だったときは心なしかウキウキしてる自分がいました。
+
+イケメンで仕事ができるれなぴょん。
+憂菜さんの前では気持ち悪いくらい甘える人であって欲しい。
+
+じゅんぴより`;
+
+const Model = () => {
+  const gltf = useLoader(GLTFLoader, "/scene.gltf");
+  return (
+    <>
+      <primitive object={gltf.scene} scale={0.01} />
+    </>
+  );
+};
 
 export default function Home() {
-  return (
-    <main className="flex min-h-screen flex-col items-center justify-between p-24">
-      <div className="z-10 w-full max-w-5xl items-center justify-between font-mono text-sm lg:flex">
-        <p className="fixed left-0 top-0 flex w-full justify-center border-b border-gray-300 bg-gradient-to-b from-zinc-200 pb-6 pt-8 backdrop-blur-2xl dark:border-neutral-800 dark:bg-zinc-800/30 dark:from-inherit lg:static lg:w-auto  lg:rounded-xl lg:border lg:bg-gray-200 lg:p-4 lg:dark:bg-zinc-800/30">
-          Get started by editing&nbsp;
-          <code className="font-mono font-bold">src/app/page.tsx</code>
-        </p>
-        <div className="fixed bottom-0 left-0 flex h-48 w-full items-end justify-center bg-gradient-to-t from-white via-white dark:from-black dark:via-black lg:static lg:h-auto lg:w-auto lg:bg-none">
-          <a
-            className="pointer-events-none flex place-items-center gap-2 p-8 lg:pointer-events-auto lg:p-0"
-            href="https://vercel.com?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
+  const textMaskContainerRef = useRef(null);
+  const confettiTriggerContainerRef = useRef(null);
+  const stickyMaskRef: MutableRefObject<HTMLDivElement | null> = useRef(null);
+  const textRefs = useRef([]);
+
+  const initialMaskSize = 0.8;
+  const targetMaskSize = 30;
+  const easing = 0.15;
+  let easedScrollProgress = 0;
+
+  let textAnimationRefs = useRef<HTMLSpanElement[]>([]);
+  const textContainerRef = useRef(null);
+  const textAnimationContainerRef: MutableRefObject<HTMLDivElement | null> =
+    useRef(null);
+
+  const confettiAnimationInstance: MutableRefObject<
+    ((opts: any) => void) | null
+  > = useRef(null);
+
+  const getConfettiInstance = useCallback((instance: any) => {
+    confettiAnimationInstance.current = instance;
+  }, []);
+
+  const launchConfetti = useCallback((particleRatio: number, opts: any) => {
+    confettiAnimationInstance.current &&
+      confettiAnimationInstance.current({
+        ...opts,
+        origin: { y: 0.7 },
+        particleCount: Math.floor(200 * particleRatio),
+      });
+  }, []);
+
+  const fireConfetti = () => {
+    launchConfetti(0.25, {
+      spread: 26,
+      startVelocity: 55,
+    });
+
+    launchConfetti(0.2, {
+      spread: 60,
+    });
+
+    launchConfetti(0.35, {
+      spread: 100,
+      decay: 0.91,
+      scalar: 0.8,
+    });
+
+    launchConfetti(0.1, {
+      spread: 120,
+      startVelocity: 25,
+      decay: 0.92,
+      scalar: 1.2,
+    });
+
+    launchConfetti(0.1, {
+      spread: 120,
+      startVelocity: 45,
+    });
+  };
+
+  useEffect(() => {
+    requestAnimationFrame(animateMask);
+  }, []);
+
+  const animateMask = () => {
+    if (stickyMaskRef.current) {
+      const maskSizeProgress = targetMaskSize * getScrollProgress();
+      stickyMaskRef.current.style.webkitMaskSize =
+        (initialMaskSize + maskSizeProgress) * 100 + "%";
+      requestAnimationFrame(animateMask);
+    }
+  };
+
+  const getScrollProgress = () => {
+    if (stickyMaskRef.current && textAnimationContainerRef.current) {
+      const scrollProgress =
+        stickyMaskRef.current.offsetTop /
+        (textAnimationContainerRef.current.getBoundingClientRect().height -
+          window.innerHeight);
+      const delta = scrollProgress - easedScrollProgress;
+      easedScrollProgress += delta * easing;
+      return easedScrollProgress;
+    }
+    return 0;
+  };
+
+  useEffect(() => {
+    gsap.registerPlugin(ScrollTrigger);
+    animateTextAppearance();
+    animateConfettiTrigger();
+  }, []);
+
+  const animateTextAppearance = () => {
+    gsap.to(textAnimationRefs.current, {
+      scrollTrigger: {
+        trigger: textAnimationContainerRef.current,
+        scrub: true,
+        start: "top",
+        end: `+=${window.innerHeight / 0.8}`,
+      },
+      opacity: 1,
+      ease: "none",
+      stagger: 0.1,
+    });
+  };
+
+  const animateConfettiTrigger = () => {
+    gsap.to(textAnimationRefs.current, {
+      scrollTrigger: {
+        trigger: confettiTriggerContainerRef.current,
+        onEnter: () => {
+          fireConfetti();
+        },
+      },
+    });
+  };
+
+  const splitWords = (phrase: string) => {
+    let body: JSX.Element[] = [];
+    phrase.split(" ").forEach((word, i) => {
+      const letters = splitLetters(word);
+      body.push(<p key={word + "_" + i}>{letters}</p>);
+    });
+    return body;
+  };
+
+  const splitLetters = (word: string) => {
+    let letters: JSX.Element[] = [];
+    word.split("").forEach((letter, i) => {
+      if (letter === "\n") {
+        letters.push(<br key={i} />);
+      } else {
+        letters.push(
+          <span
+            key={letter + "_" + i}
+            ref={(el: HTMLSpanElement | null) => {
+              if (el) {
+                textAnimationRefs.current.push(el);
+              }
+            }}
           >
-            By{' '}
-            <Image
-              src="/vercel.svg"
-              alt="Vercel Logo"
-              className="dark:invert"
-              width={100}
-              height={24}
-              priority
-            />
-          </a>
+            {letter}
+          </span>
+        );
+      }
+    });
+    return letters;
+  };
+
+  useEffect(() => {
+    gsap.to(textRefs.current, {
+      duration: 0.5,
+      y: "0%",
+      stagger: 0.05,
+      ease: "power4.out",
+    });
+  }, []);
+
+  return (
+    <main ref={textAnimationContainerRef} className={pageStyles.main}>
+      <div ref={textMaskContainerRef} className={pageStyles.textMaskContainer}>
+        <div ref={stickyMaskRef} className={pageStyles.stickyMask}>
+          <div ref={textContainerRef} className={pageStyles.textContainer}>
+            {splitWords(letter)}
+          </div>
         </div>
       </div>
 
-      <div className="relative flex place-items-center before:absolute before:h-[300px] before:w-[480px] before:-translate-x-1/2 before:rounded-full before:bg-gradient-radial before:from-white before:to-transparent before:blur-2xl before:content-[''] after:absolute after:-z-20 after:h-[180px] after:w-[240px] after:translate-x-1/3 after:bg-gradient-conic after:from-sky-200 after:via-blue-200 after:blur-2xl after:content-[''] before:dark:bg-gradient-to-br before:dark:from-transparent before:dark:to-blue-700 before:dark:opacity-10 after:dark:from-sky-900 after:dark:via-[#0141ff] after:dark:opacity-40 before:lg:h-[360px] z-[-1]">
-        <Image
-          className="relative dark:drop-shadow-[0_0_0.3rem_#ffffff70] dark:invert"
-          src="/next.svg"
-          alt="Next.js Logo"
-          width={180}
-          height={37}
-          priority
+      <div className={pageStyles.heartContainer}>
+        <div className={pageStyles.topLeft}>Best wishes for a long</div>
+        <div className={pageStyles.bottomRight}>and happy life together</div>
+        <Canvas shadows dpr={[1, 2]} camera={{ position: [0, 0, 4], fov: 50 }}>
+          <ambientLight intensity={0.7} />
+          <spotLight
+            intensity={0.5}
+            angle={0.1}
+            penumbra={1}
+            position={[10, 15, 10]}
+            castShadow
+          />
+          <Suspense fallback={null}>
+            <Model />
+            <Environment preset="city" />
+          </Suspense>
+          <OrbitControls
+            autoRotate
+            enableZoom={false}
+            enableDamping={true}
+            dampingFactor={0.05}
+          />
+        </Canvas>
+        <ReactCanvasConfetti
+          refConfetti={getConfettiInstance}
+          style={{
+            position: "absolute",
+            pointerEvents: "none",
+            width: "100%",
+            height: "100%",
+            bottom: 0,
+            left: 0,
+          }}
+        />
+        <div
+          ref={confettiTriggerContainerRef}
+          style={{ position: "absolute", bottom: "0", height: "1px" }}
         />
       </div>
-
-      <div className="mb-32 grid text-center lg:mb-0 lg:grid-cols-4 lg:text-left">
-        <a
-          href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Docs{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Find in-depth information about Next.js features and API.
-          </p>
-        </a>
-
-        <a
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Learn{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Learn about Next.js in an interactive course with&nbsp;quizzes!
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Templates{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Explore the Next.js 13 playground.
-          </p>
-        </a>
-
-        <a
-          href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template&utm_campaign=create-next-app"
-          className="group rounded-lg border border-transparent px-5 py-4 transition-colors hover:border-gray-300 hover:bg-gray-100 hover:dark:border-neutral-700 hover:dark:bg-neutral-800/30"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <h2 className={`mb-3 text-2xl font-semibold`}>
-            Deploy{' '}
-            <span className="inline-block transition-transform group-hover:translate-x-1 motion-reduce:transform-none">
-              -&gt;
-            </span>
-          </h2>
-          <p className={`m-0 max-w-[30ch] text-sm opacity-50`}>
-            Instantly deploy your Next.js site to a shareable URL with Vercel.
-          </p>
-        </a>
-      </div>
     </main>
-  )
+  );
 }

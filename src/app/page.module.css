@@ -1,0 +1,96 @@
+.textContainer {
+  width: 90%;
+  display: flex;
+  flex-wrap: wrap;
+}
+
+.textMaskContainer {
+  position: relative;
+  height: 300vh;
+}
+
+.stickyMask {
+  display: flex;
+  overflow: hidden;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  align-items: center;
+  justify-content: center;
+  mask-image: url("/medias/rena-ome.svg");
+  mask-position: 52.35% center;
+  mask-repeat: no-repeat;
+  mask-size: 80%;
+  background-color: #ff8aad;
+  flex-direction: column;
+}
+
+.stickyMask video {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+}
+
+.textContainer {
+  height: 100%;
+  width: 100%;
+  object-fit: cover;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 85%;
+}
+
+.stickyMask div p {
+  font-size: 2vw;
+  margin: 0px;
+  margin-right: 1.5vw;
+  font-weight: 700;
+  color: white;
+}
+
+.textContainer span {
+  opacity: 0.2;
+}
+
+.heartContainer {
+  height: 100vh;
+  background: linear-gradient(115.58deg, #00fc19 0%, #1700a4 100.22%),
+    radial-gradient(92.72% 100% at 50% 0%, #ebffcb 0%, #651200 100%),
+    radial-gradient(92.72% 100% at 50% 0%, #faff00 0%, #820000 100%),
+    radial-gradient(109.21% 213.32% at 100% 0%, #ff4d00 0%, #00c2ff 100%),
+    linear-gradient(127.43deg, #d50000 0%, #7856ff 100%);
+  background-blend-mode: lighten, overlay, lighten, screen, normal;
+  width: 100%;
+  position: relative;
+  cursor: grabbing;
+}
+
+.globe {
+  display: grid;
+  place-items: center;
+  height: 100vh;
+  cursor: grabbing;
+}
+
+.character {
+  display: inline-block;
+  transform: translateY(100%);
+  overflow: hidden;
+}
+
+.topLeft {
+  position: absolute;
+  font-size: 6vw;
+  color: #f890b8;
+  left: 6%;
+  top: 12%;
+}
+
+.bottomRight {
+  position: absolute;
+  font-size: 6vw;
+  color: #f2dccc;
+  right: 6%;
+  bottom: 12%;
+}
