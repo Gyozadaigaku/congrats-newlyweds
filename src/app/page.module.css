@@ -103,6 +103,10 @@
     height: 50vh !important;
   }
   .stickyMask div p {
-    font-size: 3vw;
+    font-size: 2.5vw;
+  }
+  .topLeft,
+  .bottomRight {
+    font-size: 7.5vw;
   }
 }
